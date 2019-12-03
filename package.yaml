@@ -1,0 +1,42 @@
+name: "tapl"
+version: "1.0.0"
+github: "githubuser/Tapl"
+license: BSD3
+author: "Ziphil"
+maintainer: "example@example.com"
+copyright: "2019 Ziphil"
+
+description: "Please see the README on GitHub at <https://github.com/githubuser/Tapl#readme>"
+
+dependencies:
+  - base-noprelude
+  - relude
+  - parsec
+
+library:
+  source-dirs: source
+
+default-extensions:
+  - OverloadedStrings
+
+executables:
+  tapl-exe:
+    main: Main.hs
+    source-dirs: application
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+    dependencies:
+      - tapl
+
+tests:
+  tapl-test:
+    main: Spec.hs
+    source-dirs: test
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+    dependencies:
+      - tapl

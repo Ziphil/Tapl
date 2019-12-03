@@ -1,0 +1,8 @@
+resolver: lts-12.14
+
+packages:
+  - .
+
+extra-deps:
+  - base-noprelude-4.11.1.0
+  - pretty-terminal-0.1.0.0
