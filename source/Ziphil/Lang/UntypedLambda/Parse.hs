@@ -49,7 +49,7 @@ getNakedTerm :: Context -> Parser (WithContext Term)
 getNakedTerm context = try (getAppTerm context) <|> getNakedNonappTerm context
 
 getNakedNonappTerm :: Context -> Parser (WithContext Term)
-getNakedNonappTerm context = try (getAbsTerm context) <|> getSymTerm context <|> getVarTerm context
+getNakedNonappTerm context = try (getAbsTerm context) <|> getLetTerm context <|> getSymTerm context <|> getVarTerm context
 
 getVarTerm :: Context -> Parser (WithContext Term)
 getVarTerm context = do
@@ -88,10 +88,22 @@ getSymTerm context = do
   name <- getVarName
   return $ context :- Sym Info name
 
+getLetTerm :: Context -> Parser (WithContext Term)
+getLetTerm context = do
+  _ <- string "let" >> getSpaces1
+  name <- getVarName
+  _ <- getSpaces >> char '=' >> getSpaces
+  subContext :- subTerm <- getTerm context
+  _ <- getSpaces1 >> string "in" >> getSpaces1
+  contContext :- contTerm <- getTerm $ name : subContext
+  return $ tail contContext :- App Info (Abs Info name contTerm) subTerm
+
 getVarName :: Parser VarName
 getVarName = do
   name <- many1 lower
-  return name
+  if name == "let" || name == "in"
+    then fail "illegal identifier"
+    else return name
 
 getSpaces :: Parser ()
 getSpaces = skipMany space
