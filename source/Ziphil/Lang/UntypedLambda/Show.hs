@@ -2,7 +2,8 @@
 {-# LANGUAGE TypeSynonymInstances #-}
 
 module Ziphil.Lang.UntypedLambda.Show
-  (
+  ( showRawTerm
+  , showTerm
   )
 where
 
