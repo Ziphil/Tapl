@@ -1,6 +1,6 @@
 --
 
-module Ziphil.Language.UntypedLambda.Parse
+module Ziphil.Lang.UntypedLambda.Parse
   ( parseTerm
   , parseTerm'
   , makeTerm
@@ -11,7 +11,7 @@ where
 import Data.Either
 import Text.Parsec
 import Text.Parsec.String
-import Ziphil.Language.UntypedLambda.Base
+import Ziphil.Lang.UntypedLambda.Base
 
 
 parseTerm :: String -> Either ParseError (WithContext Term)

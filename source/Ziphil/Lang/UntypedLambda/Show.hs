@@ -1,12 +1,12 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 
-module Ziphil.Language.UntypedLambda.Show
+module Ziphil.Lang.UntypedLambda.Show
   (
   )
 where
 
-import Ziphil.Language.UntypedLambda.Base
+import Ziphil.Lang.UntypedLambda.Base
 
 
 showRawTerm :: Term -> String

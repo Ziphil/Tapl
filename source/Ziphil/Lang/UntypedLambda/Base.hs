@@ -1,6 +1,6 @@
 {-# LANGUAGE NegativeLiterals #-}
 
-module Ziphil.Language.UntypedLambda.Base
+module Ziphil.Lang.UntypedLambda.Base
   ( Index
   , VarName
   , Info (..)

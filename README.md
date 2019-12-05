@@ -8,7 +8,7 @@ OCaml 分からないし Haskell が好きなので Haskell で書きます。
 
 ## 内容
 
-### `Ziphil.Language.UntypedLambda`
+### `Ziphil.Lang.UntypedLambda`
 第 7 章の実装です。
 型なしラムダ計算を de Bruijn インデックスを用いて実装しています。
 
