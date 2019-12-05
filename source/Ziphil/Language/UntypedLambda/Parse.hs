@@ -15,10 +15,10 @@ import Ziphil.Language.UntypedLambda.Base
 
 
 parseTerm :: String -> Either ParseError (WithContext Term)
-parseTerm text = parse (getTerm []) "" text
+parseTerm text = parse getTermEof "" text
 
 parseTerm' :: String -> Either ParseError Term
-parseTerm' text = (\(context :- term) -> term) <$> parse (getTerm []) "" text
+parseTerm' text = (\(context :- term) -> term) <$> parse getTermEof "" text
 
 makeTerm :: String -> WithContext Term
 makeTerm = fromRight (["?"] :- Var Info 0) . parseTerm
@@ -26,8 +26,14 @@ makeTerm = fromRight (["?"] :- Var Info 0) . parseTerm
 makeTerm' :: String -> Term
 makeTerm' = fromRight (Var Info 0) . parseTerm'
 
+getTermEof :: Parser (WithContext Term)
+getTermEof = do
+  wterm <- getTerm []
+  _ <- eof
+  return wterm
+
 getTerm :: Context -> Parser (WithContext Term)
-getTerm context = getParenedTerm context <|> getNakedTerm context
+getTerm context = getNakedTerm context <|> getParenedTerm context
 
 getNonappTerm :: Context -> Parser (WithContext Term)
 getNonappTerm context = getParenedTerm context <|> getNakedNonappTerm context
