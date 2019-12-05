@@ -17,11 +17,12 @@ module Ziphil.Language.UntypedLambda.Base
   )
 where
 
-import Data.List (elemIndex)
+import Data.List
+import Ziphil.Util.Core
 
 
 type Index = Int
-type VarName = Text
+type VarName = String
 
 data Info = Info
 

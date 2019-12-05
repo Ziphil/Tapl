@@ -8,7 +8,7 @@ module Ziphil.Language.UntypedLambda.Parse
   )
 where
 
-import Prelude hiding ((<|>))
+import Data.Either
 import Text.Parsec
 import Text.Parsec.String
 import Ziphil.Language.UntypedLambda.Base
@@ -58,28 +58,27 @@ getAbsTerm context = do
   name <- getVarName
   _ <- getSpaces >> char '.' >> getSpaces
   contContext :- contTerm <- getTerm (name : context)
-  case viaNonEmpty tail contContext of
-    Just finalContext -> return (finalContext :- Abs Info name contTerm)
-    Nothing -> error "weird"
+  return (tail contContext :- Abs Info name contTerm)
 
 getAppTerm :: Context -> Parser (WithContext Term)
 getAppTerm context = do
   newContext :- terms <- getTermSequence context []
   case reverse terms of
     headTerm : restTerms -> do
-      let newTerm = foldl' (\prevTerm curTerm -> App Info prevTerm curTerm) headTerm restTerms
+      let newTerm = foldl (\prevTerm curTerm -> App Info prevTerm curTerm) headTerm restTerms
       return (newContext :- newTerm)
     [] -> error "weird"
 
 getTermSequence :: Context -> [Term] -> Parser (WithContext [Term])
 getTermSequence context prevTerms = do
   headContext :- headTerm <- getNonappTerm context
-  try (getSpaces >> getTermSequence headContext (headTerm : prevTerms)) <|> return (headContext :- (headTerm : prevTerms))
+  let newTerms = headTerm : prevTerms
+  try (getSpaces >> getTermSequence headContext newTerms) <|> return (headContext :- newTerms)
 
 getVarName :: Parser VarName
 getVarName = do
   name <- many1 lower
-  return $ toText name
+  return name
 
 getSpaces :: Parser ()
 getSpaces = skipMany space

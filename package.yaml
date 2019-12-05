@@ -9,15 +9,11 @@ copyright: "2019 Ziphil"
 description: "Please see the README on GitHub at <https://github.com/githubuser/Tapl#readme>"
 
 dependencies:
-  - base-noprelude
-  - relude
+  - base >= 4.7 && < 5
   - parsec
 
 library:
   source-dirs: source
-
-default-extensions:
-  - OverloadedStrings
 
 executables:
   tapl-exe:
