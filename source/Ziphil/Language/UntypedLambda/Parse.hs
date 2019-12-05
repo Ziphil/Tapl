@@ -27,7 +27,23 @@ makeTerm' :: String -> Term
 makeTerm' = fromRight (Var Info 0) . parseTerm'
 
 getTerm :: Context -> Parser (WithContext Term)
-getTerm context = try (getVarTerm context) <|> try (getAbsTerm context) <|> try (getAppTerm context)
+getTerm context = getParenedTerm context <|> getNakedTerm context
+
+getNonappTerm :: Context -> Parser (WithContext Term)
+getNonappTerm context = getParenedTerm context <|> getNakedNonappTerm context
+
+getNakedTerm :: Context -> Parser (WithContext Term)
+getNakedTerm context = try (getAbsTerm context) <|> try (getAppTerm context) <|> getVarTerm context
+
+getNakedNonappTerm :: Context -> Parser (WithContext Term)
+getNakedNonappTerm context = try (getAbsTerm context) <|> getVarTerm context
+
+getParenedTerm :: Context -> Parser (WithContext Term)
+getParenedTerm context = do
+  _ <- char '(' >> getSpaces
+  newContext :- term <- getTerm context
+  _ <- getSpaces >> char ')'
+  return (newContext :- term)
 
 getVarTerm :: Context -> Parser (WithContext Term)
 getVarTerm context = do
@@ -38,30 +54,27 @@ getVarTerm context = do
 
 getAbsTerm :: Context -> Parser (WithContext Term)
 getAbsTerm context = do
-  char '('
-  getSpaces
-  char 'λ'
-  getSpaces
+  _ <- char 'λ' >> getSpaces
   name <- getVarName
-  getSpaces
-  char '.'
-  getSpaces
+  _ <- getSpaces >> char '.' >> getSpaces
   contContext :- contTerm <- getTerm (name : context)
-  getSpaces
-  char ')'
   case viaNonEmpty tail contContext of
     Just finalContext -> return (finalContext :- Abs Info name contTerm)
-    Nothing -> fail "weird"
+    Nothing -> error "weird"
 
 getAppTerm :: Context -> Parser (WithContext Term)
 getAppTerm context = do
-  char '('
-  funcContext :- funcTerm <- getTerm context
-  getSpaces
-  valContext :- valTerm <- getTerm funcContext
-  getSpaces
-  char ')'
-  return (valContext :- App Info funcTerm valTerm)
+  newContext :- terms <- getTermSequence context []
+  case reverse terms of
+    headTerm : restTerms -> do
+      let newTerm = foldl' (\prevTerm curTerm -> App Info prevTerm curTerm) headTerm restTerms
+      return (newContext :- newTerm)
+    [] -> error "weird"
+
+getTermSequence :: Context -> [Term] -> Parser (WithContext [Term])
+getTermSequence context prevTerms = do
+  headContext :- headTerm <- getNonappTerm context
+  try (getSpaces >> getTermSequence headContext (headTerm : prevTerms)) <|> return (headContext :- (headTerm : prevTerms))
 
 getVarName :: Parser VarName
 getVarName = do
