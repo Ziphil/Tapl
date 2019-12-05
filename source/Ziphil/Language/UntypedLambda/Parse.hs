@@ -43,37 +43,38 @@ getParenedTerm context = do
   _ <- char '(' >> getSpaces
   newContext :- term <- getTerm context
   _ <- getSpaces >> char ')'
-  return (newContext :- term)
+  return $ newContext :- term
 
 getVarTerm :: Context -> Parser (WithContext Term)
 getVarTerm context = do
   name <- getVarName
   case fetchIndex context name of
-    Just index -> return (context :- Var Info index)
-    Nothing -> return ((context ++ [name]) :- Var Info (length context))
+    Just index -> return $ context :- Var Info index
+    Nothing -> return $ (context ++ [name]) :- Var Info (length context)
 
 getAbsTerm :: Context -> Parser (WithContext Term)
 getAbsTerm context = do
   _ <- char 'λ' >> getSpaces
   name <- getVarName
   _ <- getSpaces >> char '.' >> getSpaces
-  contContext :- contTerm <- getTerm (name : context)
-  return (tail contContext :- Abs Info name contTerm)
+  contContext :- contTerm <- getTerm $ name : context
+  return $ tail contContext :- Abs Info name contTerm
 
 getAppTerm :: Context -> Parser (WithContext Term)
 getAppTerm context = do
   newContext :- terms <- getTermSequence context []
-  case reverse terms of
-    headTerm : restTerms -> do
-      let newTerm = foldl (\prevTerm curTerm -> App Info prevTerm curTerm) headTerm restTerms
-      return (newContext :- newTerm)
-    [] -> error "weird"
+  return $ newContext :- foldl1 (\prevTerm curTerm -> App Info prevTerm curTerm) (reverse terms)
 
 getTermSequence :: Context -> [Term] -> Parser (WithContext [Term])
 getTermSequence context prevTerms = do
   headContext :- headTerm <- getNonappTerm context
-  let newTerms = headTerm : prevTerms
-  try (getSpaces >> getTermSequence headContext newTerms) <|> return (headContext :- newTerms)
+  try (getSpaceTermSequence headContext (headTerm : prevTerms)) <|> do
+    return $ headContext :- (headTerm : prevTerms)
+
+getSpaceTermSequence :: Context -> [Term] -> Parser (WithContext [Term])
+getSpaceTermSequence context prevTerms = do
+  _ <- getSpaces
+  getTermSequence context prevTerms
 
 getVarName :: Parser VarName
 getVarName = do

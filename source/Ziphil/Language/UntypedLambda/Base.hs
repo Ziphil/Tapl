@@ -37,6 +37,9 @@ type Context = [VarName]
 infix 9 :-
 data WithContext a = Context :- a
 
+instance Functor WithContext where
+  fmap func (context :- val) = context :- func val
+
 shift :: Int -> Term -> Term
 shift = shift' 0
 
@@ -54,23 +57,23 @@ substitute tarIndex tarTerm (Var info index)
 substitute tarIndex tarTerm (Abs info name contTerm) = Abs info name (substitute (tarIndex + 1) (shift 1 tarTerm) contTerm)
 substitute tarIndex tarTerm (App info funcTerm valTerm) = App info (substitute tarIndex tarTerm funcTerm) (substitute tarIndex tarTerm valTerm)
 
-evaluateOnce :: WithContext Term -> Maybe Term
+evaluateOnce :: WithContext Term -> Maybe (WithContext Term)
 evaluateOnce (context :- App info (Abs _ name contTerm) valTerm)
-  | isValue context valTerm = Just $ shift -1 (substitute 0 (shift 1 valTerm) contTerm)
+  | isValue (context :- valTerm) = Just $ context :- shift -1 (substitute 0 (shift 1 valTerm) contTerm)
 evaluateOnce (context :- App info funcTerm valTerm)
-  | isValue context funcTerm = (\newTerm -> App info funcTerm newTerm) <$> evaluateOnce (context :- valTerm)
-  | otherwise = (\newTerm -> App info newTerm valTerm) <$> evaluateOnce (context :- funcTerm)
+  | isValue (context :- funcTerm) = fmap (\newTerm -> App info funcTerm newTerm) <$> evaluateOnce (context :- valTerm)
+  | otherwise = fmap (\newTerm -> App info newTerm valTerm) <$> evaluateOnce (context :- funcTerm)
 evaluateOnce (context :- _) = Nothing
 
-evaluate :: WithContext Term -> Term
+evaluate :: WithContext Term -> WithContext Term
 evaluate (context :- term) =
   case evaluateOnce (context :- term) of
-    Just newTerm -> evaluate (context :- newTerm)
-    Nothing -> term
+    Just newWterm -> evaluate newWterm
+    Nothing -> context :- term
 
-isValue :: Context -> Term -> Bool
-isValue context (Abs _ _ _) = True
-isValue context _ = False
+isValue :: WithContext Term -> Bool
+isValue (_ :- Abs _ _ _) = True
+isValue _ = False
 
 fetchIndex :: Context -> VarName -> Maybe Index
 fetchIndex context name = elemIndex name context
