@@ -46,7 +46,7 @@ getParenedTerm context = do
   return $ newContext :- term
 
 getNakedTerm :: Context -> Parser (WithContext Term)
-getNakedTerm context = try (getAppTerm context) <|> try (getAbsTerm context) <|> getSymTerm context <|> getVarTerm context
+getNakedTerm context = try (getAppTerm context) <|> getNakedNonappTerm context
 
 getNakedNonappTerm :: Context -> Parser (WithContext Term)
 getNakedNonappTerm context = try (getAbsTerm context) <|> getSymTerm context <|> getVarTerm context
