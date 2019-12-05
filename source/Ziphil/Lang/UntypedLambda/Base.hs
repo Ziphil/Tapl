@@ -12,6 +12,7 @@ module Ziphil.Lang.UntypedLambda.Base
   , substitute
   , evaluateOnce
   , evaluate
+  , chain
   , fetchIndex
   , fetchName
   )
@@ -72,6 +73,12 @@ evaluate (context :- term) =
   case evaluateOnce (context :- term) of
     Just newWterm -> evaluate newWterm
     Nothing -> context :- term
+
+chain :: WithContext Term -> [WithContext Term]
+chain wterm = 
+  case evaluateOnce wterm of
+    Just newWterm -> wterm : chain newWterm
+    Nothing -> [wterm]
 
 isValue :: WithContext Term -> Bool
 isValue (_ :- Abs _ _ _) = True
