@@ -38,18 +38,18 @@ getTerm context = getNakedTerm context <|> getParenedTerm context
 getNonappTerm :: Context -> Parser (WithContext Term)
 getNonappTerm context = getParenedTerm context <|> getNakedNonappTerm context
 
-getNakedTerm :: Context -> Parser (WithContext Term)
-getNakedTerm context = try (getAbsTerm context) <|> try (getAppTerm context) <|> getVarTerm context
-
-getNakedNonappTerm :: Context -> Parser (WithContext Term)
-getNakedNonappTerm context = try (getAbsTerm context) <|> getVarTerm context
-
 getParenedTerm :: Context -> Parser (WithContext Term)
 getParenedTerm context = do
   _ <- char '(' >> getSpaces
   newContext :- term <- getTerm context
   _ <- getSpaces >> char ')'
   return $ newContext :- term
+
+getNakedTerm :: Context -> Parser (WithContext Term)
+getNakedTerm context = try (getAppTerm context) <|> try (getAbsTerm context) <|> getSymTerm context <|> getVarTerm context
+
+getNakedNonappTerm :: Context -> Parser (WithContext Term)
+getNakedNonappTerm context = try (getAbsTerm context) <|> getSymTerm context <|> getVarTerm context
 
 getVarTerm :: Context -> Parser (WithContext Term)
 getVarTerm context = do
@@ -81,6 +81,12 @@ getSpaceTermSequence :: Context -> [Term] -> Parser (WithContext [Term])
 getSpaceTermSequence context prevTerms = do
   _ <- getSpaces
   getTermSequence context prevTerms
+
+getSymTerm :: Context -> Parser (WithContext Term)
+getSymTerm context = do
+  _ <- char ':'
+  name <- getVarName
+  return $ context :- Sym Info name
 
 getVarName :: Parser VarName
 getVarName = do

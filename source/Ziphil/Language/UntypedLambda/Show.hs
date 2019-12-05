@@ -13,11 +13,13 @@ showRawTerm :: Term -> String
 showRawTerm (Var info index) = show index
 showRawTerm (Abs info name contTerm) = "(λ. " <> showRawTerm contTerm <> ")"
 showRawTerm (App info funcTerm valTerm) = "(" <> showRawTerm funcTerm <> " " <> showRawTerm valTerm <> ")"
+showRawTerm (Sym info name) = ":" <> name
 
 showTerm :: WithContext Term -> String
 showTerm wterm@(_ :- Var _ _) = showVarTerm wterm
 showTerm wterm@(_ :- Abs _ _ _) = showAbsTerm wterm
 showTerm wterm@(_ :- App _ _ _) = showAppTerm wterm
+showTerm wterm@(_ :- Sym _ _) = showSymTerm wterm
 
 showVarTerm :: WithContext Term -> String
 showVarTerm (context :- Var info index) = 
@@ -32,6 +34,9 @@ showAbsTerm (context :- Abs info name contTerm) = "(λ" <> name' <> ". " <> show
 
 showAppTerm :: WithContext Term -> String
 showAppTerm (context :- App info funcTerm valTerm) = "(" <> showTerm (context :- funcTerm) <> " " <> showTerm (context :- valTerm) <> ")"
+
+showSymTerm :: WithContext Term -> String
+showSymTerm (context :- Sym info name) = ":" <> name
 
 pickFreshName :: Context -> VarName -> (Context, VarName)
 pickFreshName context name =

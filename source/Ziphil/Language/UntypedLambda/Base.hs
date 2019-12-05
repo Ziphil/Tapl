@@ -28,7 +28,7 @@ data Info = Info
 
 -- ラムダ計算の項を表す型です。
 -- 変項は de Bruijn インデックスによって表現します。
-data Term = Var Info Index | Abs Info VarName Term | App Info Term Term
+data Term = Var Info Index | Abs Info VarName Term | App Info Term Term | Sym Info VarName
 
 -- 文脈を表します。
 -- 最も左 (インデックスが小さい) ものほど階層の深い位置での変項に対応します。
@@ -49,6 +49,7 @@ shift' thresh num (Var info index)
   | otherwise = Var info index
 shift' thresh num (Abs info name contTerm) = Abs info name (shift' (thresh + 1) num contTerm)
 shift' thresh num (App info funcTerm valTerm) = App info (shift' thresh num funcTerm) (shift' thresh num valTerm)
+shift' thresh num term = term
 
 substitute :: Index -> Term -> Term -> Term
 substitute tarIndex tarTerm (Var info index)
@@ -56,6 +57,7 @@ substitute tarIndex tarTerm (Var info index)
   | otherwise = Var info index
 substitute tarIndex tarTerm (Abs info name contTerm) = Abs info name (substitute (tarIndex + 1) (shift 1 tarTerm) contTerm)
 substitute tarIndex tarTerm (App info funcTerm valTerm) = App info (substitute tarIndex tarTerm funcTerm) (substitute tarIndex tarTerm valTerm)
+substitute tarIndex tarTerm term = term
 
 evaluateOnce :: WithContext Term -> Maybe (WithContext Term)
 evaluateOnce (context :- App info (Abs _ name contTerm) valTerm)
@@ -73,6 +75,7 @@ evaluate (context :- term) =
 
 isValue :: WithContext Term -> Bool
 isValue (_ :- Abs _ _ _) = True
+isValue (_ :- Sym _ _) = True
 isValue _ = False
 
 fetchIndex :: Context -> VarName -> Maybe Index
