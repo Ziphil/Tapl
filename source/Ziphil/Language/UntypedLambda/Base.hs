@@ -75,6 +75,7 @@ evaluate (context :- term) =
 
 isValue :: WithContext Term -> Bool
 isValue (_ :- Abs _ _ _) = True
+isValue (context :- App _ (Sym _ _) contTerm) = isValue $ context :- contTerm 
 isValue (_ :- Sym _ _) = True
 isValue _ = False
 
