@@ -33,7 +33,7 @@ ana :: Fix f t => Coalgebra f c -> c -> t
 ana coalg = inF . fmap (ana coalg) . coalg
 
 hylo :: forall f s a c. Fix f s => Algebra f a -> Coalgebra f c -> c -> a
-hylo alg coalg = cata alg . (ana @f @s @c coalg)
+hylo alg coalg = cata alg . (ana @f @s coalg)
 
 hylo' :: forall f s a c. Fix f s => Algebra f a -> Coalgebra f c -> c -> a
 hylo' alg coalg = alg . fmap (hylo @f @s alg coalg) . coalg
