@@ -22,7 +22,7 @@ where
 type Algebra f a = f a -> a
 type Coalgebra f c = c -> f c
 
-class Functor f => Fix f s | s -> f where
+class Functor f => Fix f s where
   inF :: f s -> s
   outF :: s -> f s
 
@@ -33,7 +33,7 @@ ana :: Fix f t => Coalgebra f c -> c -> t
 ana coalg = inF . fmap (ana coalg) . coalg
 
 hylo :: forall f s a c. Fix f s => Algebra f a -> Coalgebra f c -> c -> a
-hylo alg coalg = cata alg . (ana coalg :: c -> s)
+hylo alg coalg = cata alg . (ana @f @s @c coalg)
 
 hylo' :: forall f s a c. Fix f s => Algebra f a -> Coalgebra f c -> c -> a
 hylo' alg coalg = alg . fmap (hylo @f @s alg coalg) . coalg
@@ -41,5 +41,5 @@ hylo' alg coalg = alg . fmap (hylo @f @s alg coalg) . coalg
 meta :: Fix f s => Algebra f a -> Coalgebra f a -> s -> s
 meta alg coalg = ana coalg . cata alg
 
-meta' :: Fix f s => Algebra f a -> Coalgebra f a -> s -> s
-meta' alg coalg = inF . fmap (meta' alg coalg) . outF
+meta' :: forall f s a. Fix f s => Algebra f a -> Coalgebra f a -> s -> s
+meta' alg coalg = inF . fmap @f (meta' alg coalg) . outF

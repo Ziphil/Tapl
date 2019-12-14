@@ -11,6 +11,7 @@ module Ziphil.Recursive.Example
   )
 where
 
+import Numeric.Natural
 import Ziphil.Recursive.Base
 
 
@@ -26,7 +27,7 @@ instance Fix (FList v) [v] where
   outF [] = Nil
   outF (val : rest) = Cons val rest
 
-instance Fix (FList ()) Int where
+instance Fix (FList ()) Natural where
   inF Nil = 0
   inF (Cons _ num) = num + 1
   outF 0 = Nil
@@ -36,12 +37,12 @@ algPlus :: Algebra (FList Int) Int
 algPlus Nil = 0
 algPlus (Cons val rest) = val + rest
 
-algRep :: (Int -> Int) -> Algebra (FList ()) Int
+algRep :: (Natural -> Natural) -> Algebra (FList ()) Natural
 algRep func Nil = 1
 algRep func (Cons _ num) = func num
 
 algPlusEx :: Int
-algPlusEx = cata algPlus [8, 7, 4, 6, 9]
+algPlusEx = cata algPlus ([8, 7, 4, 6, 9] :: [Int])
 
-algRepEx :: Int
-algRepEx = cata (algRep (* 2)) (10 :: Int)
+algRepEx :: Natural
+algRepEx = cata (algRep (* 2)) (10 :: Natural)
